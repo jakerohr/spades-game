@@ -4,7 +4,12 @@ module.exports = {
   pluginOptions: {
     'style-resources-loader': {
       preProcessor: 'scss',
-      patterns: [path.resolve(__dirname, './src/styles/global.scss')],
+      patterns: ['/Users/jrohr/code/misc/spades-game/client/src/styles/global.scss'],
     },
+  },
+  configureWebpack: (config) => {
+    resolve: {
+      modules: [path.resolve('/src'), path.resolve('/node_modules')];
+    }
   },
 };

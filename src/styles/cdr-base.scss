@@ -6,15 +6,17 @@
 @import '~@rei/cedar/dist/style/reset.css';
 
 /* Import cedar component CSS */
-@import '~@rei/cedar/dist/style/cdr-text.css';
-@import '~@rei/cedar/dist/style/cdr-link.css';
-@import '~@rei/cedar/dist/style/cdr-img.css';
-@import '~@rei/cedar/dist/style/cdr-row.css';
-@import '~@rei/cedar/dist/style/cdr-col.css';
-@import '~@rei/cedar/dist/style/cdr-button.css';
+// @import '~@rei/cedar/dist/style/cdr-text.css';
+// @import '~@rei/cedar/dist/style/cdr-link.css';
+// @import '~@rei/cedar/dist/style/cdr-img.css';
+// @import '~@rei/cedar/dist/style/cdr-row.css';
+// @import '~@rei/cedar/dist/style/cdr-modal.css';
+// @import '~@rei/cedar/dist/style/cdr-button.css';
 
 /* Import cedar utility CSS */
 @import '~@rei/cedar/dist/style/space.css';
 @import '~@rei/cedar/dist/style/align.css';
 @import '~@rei/cedar/dist/style/display.css';
 @import '~@rei/cedar/dist/style/container.css';
+
+@import '~@rei/cedar/dist/cedar-compiled.css';
