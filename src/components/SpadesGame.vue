@@ -77,24 +77,14 @@ export default {
     this.socket = io('http://localhost:3000');
   },
   mounted() {
-    // this.context = this.$refs.game.getContext('2d');
-    // this.socket.on('position', (data) => {
-    //   this.position = data;
-    //   this.context.clearRect(0, 0, this.$refs.game.width, this.$refs.game.height);
-    //   this.context.fillRect(this.position.x, this.position.y, 20, 20);
-    // });
-    this.socket.on('new-player', (id) => {
+    this.socket.on('new-player', (id, players) => {
       this.initPlayer.id = id;
+      this.players = players;
     });
     this.socket.on('update-players', (players) => {
       this.players = players;
-      const player = this.players.find((player) => player.id === this.playerData.id);
-      console.log(player);
-      this.playdData = player;
     });
-    // this.socket.on('deal-complete', () => {
-    //   this.playerData.hand = player.hand;
-    // });
+
     this.socket.on('shuffle-state', (shuffling) => {
       this.shuffling = shuffling;
     });
@@ -112,11 +102,6 @@ export default {
     playerData() {
       return this.players.find((player) => player.id === this.initPlayer.id);
     },
-    // hand() {
-    //   const player = this.players.find((player) => player.id === this.playerData.id);
-
-    //   return player.hand;
-    // },
   },
   methods: {
     move(direction) {
@@ -124,10 +109,10 @@ export default {
     },
     submitName() {
       this.modalOpened = false;
-      this.socket.emit('add-player', this.initPlayer);
+      this.socket.emit('add-player', this.initPlayer.name);
     },
     resetPlayers() {
-      this.socket.emit('wipe-players');
+      this.socket.emit('reset-players');
     },
     shuffleDeck() {
       this.socket.emit('shuffle-deck');
