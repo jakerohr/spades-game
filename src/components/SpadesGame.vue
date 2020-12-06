@@ -1,7 +1,7 @@
 <template>
   <div>
-    <green-room />
-    <div v-if="playerData" class="game-wrapper cdr-align-text-center">
+    <green-room v-if="playerId" :players="players" :player-id="playerId" />
+    <div v-if="gameStarted" class="game-wrapper cdr-align-text-center">
       <cdr-button v-on:click="resetPlayers">Reset Players</cdr-button>
       <cdr-text>Number of players: {{ players.length }}</cdr-text>
       <h2 v-show="shuffling">SHUFFLING!</h2>
@@ -44,6 +44,7 @@ export default {
   data() {
     return {
       selectedBackground: 'dark-wood',
+      gameStarted: false,
       playerId: null,
       initPlayer: {
         name: null,
@@ -60,8 +61,7 @@ export default {
       console.log('vue socket connected!');
     },
     newPlayer(id, players) {
-      console.table(players);
-      this.initPlayer.id = id;
+      this.playerId = id;
       this.players = players;
     },
     updatePlayers(players) {
@@ -82,7 +82,7 @@ export default {
         : null;
     },
     playerData() {
-      return this.players.find((player) => player.id === this.initPlayer.id);
+      return this.players.find((player) => player.id === this.playerId);
     },
   },
   methods: {
