@@ -2,7 +2,7 @@
   <div>
     <div v-if="playerData" class="game-wrapper cdr-align-text-center">
       <cdr-button v-on:click="resetPlayers">Reset Players</cdr-button>
-      <p>Number of players: {{ players.length }}</p>
+      <cdr-text>Number of players: {{ players.length }}</cdr-text>
       <h2 v-show="shuffling">SHUFFLING!</h2>
       <cdr-button @click="shuffleDeck">Shuffle Deck</cdr-button>
       <card-area
@@ -24,36 +24,18 @@
       </div>
       <card-area class="card-area" :cards="playerData.hand" :player-name="playerData.name" />
     </div>
-
-    <cdr-modal
-      label="Enter Name"
-      :opened="modalOpened"
-      @closed="modalOpened = false"
-      aria-described-by="description"
-    >
-      <template slot="title">
-        <cdr-text tag="h3" class="heading-600">Welcome!</cdr-text>
-        <cdr-text tag="h4" class="heading-500">Please enter your name to join the game!</cdr-text>
-      </template>
-      <form v-on:submit.prevent="submitName">
-        <cdr-input v-model="initPlayer.name" label="Name" placeholder="Who are you?" />
-        <cdr-button type="submit">Enter</cdr-button>
-      </form>
-    </cdr-modal>
   </div>
 </template>
 
 <script>
 import { io } from 'socket.io-client';
-import { CdrButton, CdrModal, CdrText, CdrInput, CdrImg } from '@rei/cedar';
+import { CdrButton, CdrText, CdrImg } from '@rei/cedar';
 import CardArea from './CardArea.vue';
 export default {
   name: 'SpadesGame',
   components: {
     CdrButton,
-    CdrModal,
     CdrText,
-    CdrInput,
     CdrImg,
     CardArea,
   },
