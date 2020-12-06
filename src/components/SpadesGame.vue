@@ -1,5 +1,6 @@
 <template>
   <div>
+    <green-room />
     <div v-if="playerData" class="game-wrapper cdr-align-text-center">
       <cdr-button v-on:click="resetPlayers">Reset Players</cdr-button>
       <cdr-text>Number of players: {{ players.length }}</cdr-text>
@@ -28,9 +29,9 @@
 </template>
 
 <script>
-import { io } from 'socket.io-client';
 import { CdrButton, CdrText, CdrImg } from '@rei/cedar';
 import CardArea from './CardArea.vue';
+import GreenRoom from './GreenRoom.vue';
 export default {
   name: 'SpadesGame',
   components: {
@@ -38,11 +39,10 @@ export default {
     CdrText,
     CdrImg,
     CardArea,
+    GreenRoom,
   },
   data() {
     return {
-      socket: {},
-      modalOpened: true,
       selectedBackground: 'dark-wood',
       playerId: null,
       initPlayer: {
@@ -55,21 +55,21 @@ export default {
       shuffling: false,
     };
   },
-  created() {
-    this.socket = io('http://localhost:3000');
-  },
-  mounted() {
-    this.socket.on('new-player', (id, players) => {
+  sockets: {
+    connect() {
+      console.log('vue socket connected!');
+    },
+    newPlayer(id, players) {
+      console.table(players);
       this.initPlayer.id = id;
       this.players = players;
-    });
-    this.socket.on('update-players', (players) => {
+    },
+    updatePlayers(players) {
       this.players = players;
-    });
-
-    this.socket.on('shuffle-state', (shuffling) => {
+    },
+    shuffleState(shuffling) {
       this.shuffling = shuffling;
-    });
+    },
   },
   computed: {
     backgroundImage() {
@@ -86,18 +86,11 @@ export default {
     },
   },
   methods: {
-    move(direction) {
-      this.socket.emit('move', direction);
-    },
-    submitName() {
-      this.modalOpened = false;
-      this.socket.emit('add-player', this.initPlayer.name);
-    },
     resetPlayers() {
-      this.socket.emit('reset-players');
+      this.$socket.client.emit('resetPlayers');
     },
     shuffleDeck() {
-      this.socket.emit('shuffle-deck');
+      this.$socket.client.emit('shuffleDeck');
     },
   },
 };
