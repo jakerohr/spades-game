@@ -1,6 +1,6 @@
 <template>
   <div>
-    <green-room v-if="playerId" :players="players" :player-id="playerId" />
+    <green-room v-if="playerId" :teams="teams" :players="players" :player-id="playerId" />
     <div v-if="gameStarted" class="game-wrapper cdr-align-text-center">
       <cdr-button v-on:click="resetPlayers">Reset Players</cdr-button>
       <cdr-text>Number of players: {{ players.length }}</cdr-text>
@@ -52,6 +52,16 @@ export default {
         hand: [],
       },
       players: [],
+      teams: [
+        {
+          name: 'Team One',
+          players: [],
+        },
+        {
+          name: 'Team Two',
+          players: [],
+        },
+      ],
       deck: [],
       shuffling: false,
     };
@@ -69,6 +79,9 @@ export default {
     },
     shuffleState(shuffling) {
       this.shuffling = shuffling;
+    },
+    updateTeams(teams) {
+      this.teams = teams;
     },
   },
   computed: {

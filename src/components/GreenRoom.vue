@@ -17,7 +17,30 @@
           </li>
         </cdr-list>
       </cdr-form-group>
-      <cdr-text>You have selected: {{ getTeammateName }}</cdr-text>
+      <cdr-select
+        v-model="selectedTeam"
+        @change="onChange($event)"
+        label="Team Selection"
+        prompt="Select a team"
+      >
+        <option
+          v-for="(team, index) in teams"
+          :key="`team-${index}`"
+          :value="team.name"
+          :disabled="teamIsFull(team.name)"
+        >
+          {{ team.name }}
+        </option>
+      </cdr-select>
+      <br />
+      <div class="team-list">
+        <div v-for="(team, index) in teams" :key="`team-${index}`">
+          <cdr-text tag="h2" class="heading-600">{{ team.name }}</cdr-text>
+          <cdr-list v-if="team.players">
+            <li v-for="player in team.players" :key="player.id">{{ player.name }}</li>
+          </cdr-list>
+        </div>
+      </div>
     </div>
     <cdr-modal
       label="Enter Name"
@@ -38,9 +61,9 @@
 </template>
 
 <script>
-import io from 'socket.io-client';
 import {
   CdrButton,
+  CdrSelect,
   CdrRadio,
   CdrFormGroup,
   CdrModal,
@@ -52,6 +75,7 @@ export default {
   name: 'GreenRoom',
   components: {
     CdrButton,
+    CdrSelect,
     CdrRadio,
     CdrFormGroup,
     CdrModal,
@@ -64,6 +88,10 @@ export default {
       type: Array,
       default: () => {},
     },
+    teams: {
+      type: Array,
+      default: () => {},
+    },
     playerId: {
       type: String,
       default: null,
@@ -73,10 +101,11 @@ export default {
     return {
       modalOpened: true,
       playerName: null,
-      teams: {},
       selectedTeammate: null,
+      selectedTeam: '',
     };
   },
+
   computed: {
     formLabel() {
       return this.players.length < 4 ? 'Wating for players...' : 'Select your teammate.';
@@ -97,6 +126,25 @@ export default {
       this.selectedTeammate = value;
       this.$socket.client.emit('submitTeammate', value, this.playerId);
     },
+    onChange(team) {
+      this.$socket.client.emit('selectTeam', team);
+      // this.checkTeamForPlayer(this.playerId);
+      // this.getTeam(event).players.push(this.playerId);
+      // this.selectedTeam = event;
+    },
+    teamIsFull(team) {
+      return this.getTeam(team).players.length >= 2;
+    },
+    getTeam(value) {
+      const getTeam = this.teams.find((team) => team.name === value);
+      return getTeam;
+    },
+    checkTeamForPlayer(id) {
+      this.teams.forEach((team) => {
+        const clearPlayer = team.players.filter((player) => player !== id);
+        console.log(clearPlayer);
+      });
+    },
   },
 };
 </script>
@@ -106,5 +154,10 @@ export default {
 
 .heading-600 {
   @include cdr-text-heading-serif-600;
+}
+.team-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 20px;
 }
 </style>
