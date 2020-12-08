@@ -1,7 +1,7 @@
 <template>
   <div>
-    <div class="cdr-container">
-      <cdr-text tag="h2" class="heading-600">Players</cdr-text>
+    <div class="cdr-container stack">
+      <!-- <cdr-text tag="h2" class="heading-600">Players</cdr-text>
       <cdr-form-group :label="formLabel">
         <cdr-list v-if="players" role="radiogroup">
           <li v-for="player in players" :key="player.id">
@@ -16,9 +16,13 @@
             >
           </li>
         </cdr-list>
-      </cdr-form-group>
+      </cdr-form-group> -->
+      <cdr-text v-show="playerName" tag="h1" class="heading-700 cdr-align-text-center"
+        >Welcome {{ playerName }}!</cdr-text
+      >
       <cdr-select
         v-model="selectedTeam"
+        class="team-select"
         @change="onChange($event)"
         label="Team Selection"
         prompt="Select a team"
@@ -32,14 +36,19 @@
           {{ team.name }}
         </option>
       </cdr-select>
-      <br />
-      <div class="team-list">
+      <div class="team-list cdr-align-text-center">
         <div v-for="(team, index) in teams" :key="`team-${index}`">
-          <cdr-text tag="h2" class="heading-600">{{ team.name }}</cdr-text>
+          <cdr-text tag="h2" class="heading-500">{{ team.name }}</cdr-text>
+          <hr />
           <cdr-list v-if="team.players">
             <li v-for="player in team.players" :key="player.id">{{ player.name }}</li>
           </cdr-list>
         </div>
+      </div>
+      <div class="cdr-align-text-center">
+        <cdr-button v-if="readyGame" :modifier="buttonStyle" @click="handlePlayerIsReady">{{
+          readyMessage
+        }}</cdr-button>
       </div>
     </div>
     <cdr-modal
@@ -64,8 +73,8 @@
 import {
   CdrButton,
   CdrSelect,
-  CdrRadio,
-  CdrFormGroup,
+  // CdrRadio,
+  // CdrFormGroup,
   CdrModal,
   CdrText,
   CdrInput,
@@ -76,8 +85,8 @@ export default {
   components: {
     CdrButton,
     CdrSelect,
-    CdrRadio,
-    CdrFormGroup,
+    // CdrRadio,
+    // CdrFormGroup,
     CdrModal,
     CdrList,
     CdrText,
@@ -101,11 +110,17 @@ export default {
     return {
       modalOpened: true,
       playerName: null,
-      selectedTeammate: null,
       selectedTeam: '',
+      readyGame: false,
+      playerIsReady: false,
+      gameFull: false,
     };
   },
-
+  sockets: {
+    fullGame(value) {
+      this.gameFull = value;
+    },
+  },
   computed: {
     formLabel() {
       return this.players.length < 4 ? 'Wating for players...' : 'Select your teammate.';
@@ -115,6 +130,12 @@ export default {
         return player.id === this.selectedTeammate;
       });
       return teammate ? teammate.name : null;
+    },
+    readyMessage() {
+      return this.playerIsReady ? "I'm not ready!" : "I'm ready!";
+    },
+    buttonStyle() {
+      return this.playerIsReady ? 'sale' : 'primary';
     },
   },
   methods: {
@@ -128,9 +149,6 @@ export default {
     },
     onChange(team) {
       this.$socket.client.emit('selectTeam', team);
-      // this.checkTeamForPlayer(this.playerId);
-      // this.getTeam(event).players.push(this.playerId);
-      // this.selectedTeam = event;
     },
     teamIsFull(team) {
       return this.getTeam(team).players.length >= 2;
@@ -139,11 +157,16 @@ export default {
       const getTeam = this.teams.find((team) => team.name === value);
       return getTeam;
     },
-    checkTeamForPlayer(id) {
-      this.teams.forEach((team) => {
-        const clearPlayer = team.players.filter((player) => player !== id);
-        console.log(clearPlayer);
-      });
+    handlePlayerIsReady() {
+      this.playerIsReady = !this.playerIsReady;
+      this.$socket.client.emit('playerReady', this.playerIsReady);
+    },
+  },
+  watch: {
+    teams() {
+      if (this.teams[1].players.length === 2 && this.teams[2].players.length === 2) {
+        this.readyGame = true;
+      }
     },
   },
 };
@@ -151,13 +174,20 @@ export default {
 
 <style lang="scss" scoped>
 @import '~@rei/cdr-tokens/dist/scss/cdr-tokens.scss';
+.stack > * + * {
+  margin-top: $cdr-space-two-x;
+}
 
-.heading-600 {
-  @include cdr-text-heading-serif-600;
+.team-select {
+  max-width: 50rem;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 .team-list {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   grid-gap: 20px;
+  justify-items: center;
 }
 </style>

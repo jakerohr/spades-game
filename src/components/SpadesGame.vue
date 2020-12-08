@@ -1,10 +1,7 @@
 <template>
   <div>
-    <green-room v-if="playerId" :teams="teams" :players="players" :player-id="playerId" />
-    <div v-if="gameStarted" class="game-wrapper cdr-align-text-center">
-      <cdr-button v-on:click="resetPlayers">Reset Players</cdr-button>
-      <cdr-text>Number of players: {{ players.length }}</cdr-text>
-      <h2 v-show="shuffling">SHUFFLING!</h2>
+    <green-room v-if="!startGame" :teams="teams" :players="players" :player-id="playerId" />
+    <div v-else class="game-wrapper cdr-align-text-center">
       <cdr-button @click="shuffleDeck">Shuffle Deck</cdr-button>
       <card-area
         v-if="teamMate"
@@ -12,7 +9,6 @@
         :cards="teamMate.hand"
         :player-name="teamMate.name"
       />
-      <p v-else>...waiting for teammate.</p>
       <div class="game-board">
         <cdr-img
           :src="backgroundImage"
@@ -29,14 +25,14 @@
 </template>
 
 <script>
-import { CdrButton, CdrText, CdrImg } from '@rei/cedar';
+import { CdrButton, CdrImg } from '@rei/cedar';
 import CardArea from './CardArea.vue';
 import GreenRoom from './GreenRoom.vue';
 export default {
   name: 'SpadesGame',
   components: {
     CdrButton,
-    CdrText,
+    // CdrText,
     CdrImg,
     CardArea,
     GreenRoom,
@@ -53,6 +49,10 @@ export default {
       },
       players: [],
       teams: [
+        {
+          name: 'No Team',
+          players: [],
+        },
         {
           name: 'Team One',
           players: [],
@@ -97,6 +97,10 @@ export default {
     playerData() {
       return this.players.find((player) => player.id === this.playerId);
     },
+    startGame() {
+      const readyArr = this.players.filter((player) => player.ready);
+      return readyArr.length === 4;
+    },
   },
   methods: {
     resetPlayers() {
@@ -113,10 +117,13 @@ export default {
 <style lang="scss">
 @import '~@rei/cdr-tokens/dist/scss/cdr-tokens.scss';
 .game-wrapper {
-  height: 100vh; //vh - viewport height
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  // height: 100vh; //vh - viewport height
+  // display: flex;
+  // flex-direction: column;
+  // align-items: center;
+  display: grid;
+  grid-template-columns: 200px auto 50px 200px;
+  grid-template-rows: 200px 100px 200px;
 }
 .game-board {
   height: auto;
@@ -125,11 +132,5 @@ export default {
 .card-area {
   margin-top: $cdr-space-two-x;
   margin-bottom: $cdr-space-two-x;
-}
-.heading-600 {
-  @include cdr-text-heading-serif-600;
-}
-.heading-500 {
-  @include cdr-text-heading-serif-500;
 }
 </style>

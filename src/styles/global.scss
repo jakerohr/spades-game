@@ -1,2 +1,13 @@
 /* Cedar Base Styles */
 @import './cdr-base.scss';
+@import '~@rei/cdr-tokens/dist/scss/cdr-tokens.scss';
+
+.heading-700 {
+  @include cdr-text-heading-serif-700;
+}
+.heading-600 {
+  @include cdr-text-heading-serif-600;
+}
+.heading-500 {
+  @include cdr-text-heading-serif-500;
+}
