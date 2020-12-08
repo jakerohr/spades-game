@@ -2,13 +2,7 @@
   <div>
     <green-room v-if="!startGame" :teams="teams" :players="players" :player-id="playerId" />
     <div v-else class="game-wrapper cdr-align-text-center">
-      <cdr-button @click="shuffleDeck">Shuffle Deck</cdr-button>
-      <card-area
-        v-if="teamMate"
-        class="card-area"
-        :cards="teamMate.hand"
-        :player-name="teamMate.name"
-      />
+      <!-- <cdr-button @click="shuffleDeck">Shuffle Deck</cdr-button> -->
       <div class="game-board">
         <cdr-img
           :src="backgroundImage"
@@ -19,19 +13,25 @@
           crop="top"
         />
       </div>
-      <card-area class="card-area" :cards="playerData.hand" :player-name="playerData.name" />
+      <card-area
+        v-for="(player, index) in players"
+        :key="player.id"
+        :class="`card-area player-${index + 1}`"
+        :cards="playerData.hand"
+        :player-name="`${index + 1}`"
+      />
     </div>
   </div>
 </template>
 
 <script>
-import { CdrButton, CdrImg } from '@rei/cedar';
+import { CdrImg } from '@rei/cedar';
 import CardArea from './CardArea.vue';
 import GreenRoom from './GreenRoom.vue';
 export default {
   name: 'SpadesGame',
   components: {
-    CdrButton,
+    // CdrButton,
     // CdrText,
     CdrImg,
     CardArea,
@@ -89,11 +89,11 @@ export default {
       const fileName = this.selectedBackground.toLowerCase();
       return require(`../assets/background/${fileName}.jpg`); // the module request
     },
-    teamMate() {
-      return this.players.length > 1
-        ? this.players.filter((player) => player.id !== this.playerData.id)[0]
-        : null;
-    },
+    // teamMate() {
+    //   return this.players.length > 1
+    //     ? this.players.filter((player) => player.id !== this.playerData.id)[0]
+    //     : null;
+    // },
     playerData() {
       return this.players.find((player) => player.id === this.playerId);
     },
@@ -122,15 +122,33 @@ export default {
   // flex-direction: column;
   // align-items: center;
   display: grid;
-  grid-template-columns: 200px auto 50px 200px;
-  grid-template-rows: 200px 100px 200px;
+  grid-template-columns: 200px auto 200px;
+  grid-template-rows: 200px auto 200px;
 }
 .game-board {
-  height: auto;
-  width: 55%;
+  grid-column: 2 / span 1;
+  grid-row: 2 / span 1;
+  // height: auto;
+  // width: 55%;
 }
 .card-area {
   margin-top: $cdr-space-two-x;
   margin-bottom: $cdr-space-two-x;
+}
+.player-1 {
+  grid-column: 2 / span 1;
+  grid-row: 1 / span 1;
+}
+.player-2 {
+  grid-column: 2 / span 1;
+  grid-row: 3 / span 1;
+}
+.player-3 {
+  grid-column: 1 / span 1;
+  grid-row: 2 / span 1;
+}
+.player-4 {
+  grid-column: 3 / span 1;
+  grid-row: 2 / span 1;
 }
 </style>
