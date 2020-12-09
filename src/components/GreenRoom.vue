@@ -108,7 +108,7 @@ export default {
   },
   data() {
     return {
-      modalOpened: true,
+      modalOpened: false,
       playerName: null,
       selectedTeam: '',
       readyGame: false,

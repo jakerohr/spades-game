@@ -1,8 +1,11 @@
 <template>
   <div>
-    <green-room v-if="!startGame" :teams="teams" :players="players" :player-id="playerId" />
-    <div v-else class="game-wrapper cdr-align-text-center">
-      <!-- <cdr-button @click="shuffleDeck">Shuffle Deck</cdr-button> -->
+    <!-- TODO: add green room back with 'else' statement -->
+    <!-- <green-room v-if="!startGame" :teams="teams" :players="players" :player-id="playerId" /> -->
+    <div v-if="startGame" class="game-wrapper cdr-align-text-center">
+      <div>
+        <cdr-button @click="shuffleDeck">Shuffle Deck</cdr-button>
+      </div>
       <div class="game-board">
         <cdr-img
           :src="backgroundImage"
@@ -14,40 +17,61 @@
         />
       </div>
       <card-area
-        v-for="(player, index) in players"
+        v-for="(player, index) in playerOrder"
         :key="player.id"
         :class="`card-area player-${index + 1}`"
-        :cards="playerData.hand"
-        :player-name="`${index + 1}`"
+        :displayVertical="displayConfig(index)"
+        :cards="getHand(player.id)"
+        :is-user="player.id === playerId"
+        :player-name="player.name"
       />
+      <cdr-select
+        v-if="cardsDealt"
+        v-model="tricks"
+        @change="onBidChange($event)"
+        class="bid-select"
+        label="What's your bid?"
+        prompt="No table talk!"
+      >
+        <option v-for="(num, index) in 14" :key="`trick-${index}`" :value="index">
+          {{ index }}
+        </option>
+      </cdr-select>
+      <bid-display v-if="startRound" class="bid-display"></bid-display>
     </div>
   </div>
 </template>
 
 <script>
-import { CdrImg } from '@rei/cedar';
+import { CdrButton, CdrImg, CdrSelect } from '@rei/cedar';
 import CardArea from './CardArea.vue';
 import GreenRoom from './GreenRoom.vue';
+import BidDisplay from './BidDisplay.vue';
+
 export default {
   name: 'SpadesGame',
   components: {
-    // CdrButton,
-    // CdrText,
+    CdrButton,
+    CdrSelect,
     CdrImg,
     CardArea,
-    GreenRoom,
+    BidDisplay,
+    // GreenRoom,
   },
   data() {
     return {
       selectedBackground: 'dark-wood',
       gameStarted: false,
+      startRound: false,
       playerId: null,
       initPlayer: {
         name: null,
         id: null,
         hand: [],
       },
+      tricks: '',
       players: [],
+      playerOrder: [],
       teams: [
         {
           name: 'No Team',
@@ -63,7 +87,7 @@ export default {
         },
       ],
       deck: [],
-      shuffling: false,
+      cardsDealt: false,
     };
   },
   sockets: {
@@ -77,11 +101,14 @@ export default {
     updatePlayers(players) {
       this.players = players;
     },
-    shuffleState(shuffling) {
-      this.shuffling = shuffling;
+    cardsDealt(state) {
+      this.cardsDealt = state;
     },
     updateTeams(teams) {
       this.teams = teams;
+    },
+    startRound(value) {
+      this.startRound = value;
     },
   },
   computed: {
@@ -89,11 +116,6 @@ export default {
       const fileName = this.selectedBackground.toLowerCase();
       return require(`../assets/background/${fileName}.jpg`); // the module request
     },
-    // teamMate() {
-    //   return this.players.length > 1
-    //     ? this.players.filter((player) => player.id !== this.playerData.id)[0]
-    //     : null;
-    // },
     playerData() {
       return this.players.find((player) => player.id === this.playerId);
     },
@@ -101,6 +123,9 @@ export default {
       const readyArr = this.players.filter((player) => player.ready);
       return readyArr.length === 4;
     },
+    // teamOneBids() {
+
+    //  }
   },
   methods: {
     resetPlayers() {
@@ -109,43 +134,73 @@ export default {
     shuffleDeck() {
       this.$socket.client.emit('shuffleDeck');
     },
+    onBidChange(bid) {
+      this.$socket.client.emit('bidSelect', parseInt(bid));
+    },
+    displayConfig(index) {
+      return (index + 1) % 2 === 0;
+    },
+    setPlayerOrder() {
+      const index = this.players.indexOf(this.playerData);
+      let arrayStart = this.players.slice(index);
+      let arrayEnd = this.players.slice(0, index);
+      this.playerOrder = [...arrayStart, ...arrayEnd];
+    },
+    getHand(id) {
+      return this.players.find((player) => player.id === id).hand;
+    },
+  },
+  watch: {
+    startGame() {
+      if (this.startGame) {
+        this.$socket.client.emit('setPlayOrder');
+        this.setPlayerOrder();
+      }
+      return;
+    },
   },
 };
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss">
 @import '~@rei/cdr-tokens/dist/scss/cdr-tokens.scss';
 .game-wrapper {
-  // height: 100vh; //vh - viewport height
-  // display: flex;
-  // flex-direction: column;
-  // align-items: center;
   display: grid;
-  grid-template-columns: 200px auto 200px;
-  grid-template-rows: 200px auto 200px;
+  grid-template-columns: 25% auto 25%;
+  grid-template-rows: 25vh auto 25vh;
+}
+.card-area {
+  padding-top: $cdr-space-two-x;
+  padding-bottom: $cdr-space-two-x;
+}
+.bid-select {
+  grid-column: 2 / span 1;
+  grid-row: 2 / span 1;
+  place-self: center;
+  z-index: 2;
+}
+.bid-select label {
+  color: $cdr-color-text-inverse;
+}
+.bid-display {
+  grid-column: 1 / span 1;
+  grid-row: 3 / span 1;
 }
 .game-board {
   grid-column: 2 / span 1;
   grid-row: 2 / span 1;
-  // height: auto;
-  // width: 55%;
-}
-.card-area {
-  margin-top: $cdr-space-two-x;
-  margin-bottom: $cdr-space-two-x;
 }
 .player-1 {
   grid-column: 2 / span 1;
-  grid-row: 1 / span 1;
-}
-.player-2 {
-  grid-column: 2 / span 1;
   grid-row: 3 / span 1;
 }
-.player-3 {
+.player-2 {
   grid-column: 1 / span 1;
   grid-row: 2 / span 1;
+}
+.player-3 {
+  grid-column: 2 / span 1;
+  grid-row: 1 / span 1;
 }
 .player-4 {
   grid-column: 3 / span 1;
