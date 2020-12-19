@@ -19,15 +19,17 @@
       <card-area
         v-for="(player, index) in playerOrder"
         :key="player.id"
-        :class="`card-area player-${index + 1}`"
+        class="card-area"
+        :class="`player-${index + 1}`"
         :displayVertical="displayConfig(index)"
         :cards="getHand(player.id)"
         :is-user="player.id === playerId"
         :player-name="player.name"
+        :this-players-turn="checkTurn(player.id)"
         :bid="getBid(player.id)"
       />
       <cdr-select
-        v-if="cardsDealt"
+        v-if="cardsDealt && !startRound"
         v-model="bid"
         @change="onBidChange($event)"
         class="bid-select"
@@ -38,7 +40,12 @@
           {{ index }}
         </option>
       </cdr-select>
-      <bid-display v-if="startRound" class="bid-display"></bid-display>
+      <game-info
+        v-if="startRound"
+        class="game-info"
+        :current-turn="playersTurn.name"
+        :your-turn="yourTurn"
+      ></game-info>
     </div>
   </div>
 </template>
@@ -47,7 +54,7 @@
 import { CdrButton, CdrImg, CdrSelect } from '@rei/cedar';
 import CardArea from './CardArea.vue';
 import GreenRoom from './GreenRoom.vue';
-import BidDisplay from './BidDisplay.vue';
+import GameInfo from './GameInfo.vue';
 
 export default {
   name: 'SpadesGame',
@@ -56,7 +63,7 @@ export default {
     CdrSelect,
     CdrImg,
     CardArea,
-    BidDisplay,
+    GameInfo,
     // GreenRoom,
   },
   data() {
@@ -64,6 +71,7 @@ export default {
       selectedBackground: 'dark-wood',
       gameStarted: false,
       startRound: false,
+      openingHand: false,
       playerId: null,
       initPlayer: {
         name: null,
@@ -73,6 +81,7 @@ export default {
       bid: '',
       players: [],
       playerOrder: [],
+      playersTurn: {},
       teams: [
         {
           name: 'No Team',
@@ -108,8 +117,12 @@ export default {
     updateTeams(teams) {
       this.teams = teams;
     },
-    startRound(value) {
+    startRound(value, openingHand) {
       this.startRound = value;
+      this.openingHand = openingHand;
+    },
+    nextTurn(index) {
+      this.playersTurn = this.players[index];
     },
   },
   computed: {
@@ -123,6 +136,9 @@ export default {
     startGame() {
       const readyArr = this.players.filter((player) => player.ready);
       return readyArr.length === 4;
+    },
+    yourTurn() {
+      return this.playersTurn.id === this.playerId;
     },
   },
   methods: {
@@ -149,6 +165,9 @@ export default {
     },
     getBid(id) {
       return this.players.find((player) => player.id === id).bid;
+    },
+    checkTurn(id) {
+      return this.playersTurn.id === id;
     },
   },
   watch: {
@@ -183,9 +202,9 @@ export default {
 .bid-select label {
   color: $cdr-color-text-inverse;
 }
-.bid-display {
-  grid-column: 1 / span 1;
-  grid-row: 3 / span 1;
+.game-info {
+  grid-column: 3 / span 1;
+  grid-row: 1 / span 1;
 }
 .game-board {
   grid-column: 2 / span 1;

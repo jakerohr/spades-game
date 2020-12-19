@@ -1,6 +1,8 @@
 <template>
   <div class="card-border" :class="{ vertical: displayVertical }">
-    <cdr-text tag="h2" class="heading-500">{{ playerName }} ({{ tricks }}/{{ bid }})</cdr-text>
+    <cdr-text tag="h2" class="heading-500" :class="{ active: thisPlayersTurn }"
+      >{{ playerName }} ({{ tricks }}/{{ bid }})</cdr-text
+    >
     <div class="card-container">
       <img
         class="card"
@@ -48,6 +50,10 @@ export default {
       default: false,
     },
     isUser: {
+      type: Boolean,
+      default: false,
+    },
+    thisPlayersTurn: {
       type: Boolean,
       default: false,
     },
@@ -123,5 +129,8 @@ img.card:hover {
 }
 .heading-500 {
   @include cdr-text-heading-serif-500;
+}
+.active {
+  color: $cdr-color-text-success;
 }
 </style>
