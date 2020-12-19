@@ -5,7 +5,7 @@ import App from './App.vue';
 import router from './router';
 import store from './store';
 
-const socket = io('http://localhost:3000');
+const socket = io('http://192.168.0.8:3000');
 
 Vue.config.productionTip = false;
 Vue.use(VueSocketIOExt, socket);

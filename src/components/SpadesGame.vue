@@ -24,16 +24,17 @@
         :cards="getHand(player.id)"
         :is-user="player.id === playerId"
         :player-name="player.name"
+        :bid="getBid(player.id)"
       />
       <cdr-select
         v-if="cardsDealt"
-        v-model="tricks"
+        v-model="bid"
         @change="onBidChange($event)"
         class="bid-select"
         label="What's your bid?"
         prompt="No table talk!"
       >
-        <option v-for="(num, index) in 14" :key="`trick-${index}`" :value="index">
+        <option v-for="(num, index) in 14" :key="`bid-${index}`" :value="index">
           {{ index }}
         </option>
       </cdr-select>
@@ -69,7 +70,7 @@ export default {
         id: null,
         hand: [],
       },
-      tricks: '',
+      bid: '',
       players: [],
       playerOrder: [],
       teams: [
@@ -114,7 +115,7 @@ export default {
   computed: {
     backgroundImage() {
       const fileName = this.selectedBackground.toLowerCase();
-      return require(`../assets/background/${fileName}.jpg`); // the module request
+      return require(`../assets/background/${fileName}.jpg`);
     },
     playerData() {
       return this.players.find((player) => player.id === this.playerId);
@@ -123,9 +124,6 @@ export default {
       const readyArr = this.players.filter((player) => player.ready);
       return readyArr.length === 4;
     },
-    // teamOneBids() {
-
-    //  }
   },
   methods: {
     resetPlayers() {
@@ -148,6 +146,9 @@ export default {
     },
     getHand(id) {
       return this.players.find((player) => player.id === id).hand;
+    },
+    getBid(id) {
+      return this.players.find((player) => player.id === id).bid;
     },
   },
   watch: {

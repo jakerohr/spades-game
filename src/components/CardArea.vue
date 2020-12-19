@@ -1,6 +1,6 @@
 <template>
   <div class="card-border" :class="{ vertical: displayVertical }">
-    <cdr-text tag="h2" class="heading-500">{{ playerName }} </cdr-text>
+    <cdr-text tag="h2" class="heading-500">{{ playerName }} ({{ tricks }}/{{ bid }})</cdr-text>
     <div class="card-container">
       <img
         class="card"
@@ -34,6 +34,14 @@ export default {
     cards: {
       type: Array,
       default: () => [],
+    },
+    bid: {
+      type: Number,
+      default: 0,
+    },
+    tricks: {
+      type: Number,
+      default: 0,
     },
     displayVertical: {
       type: Boolean,
