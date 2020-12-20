@@ -184,6 +184,8 @@ export default {
 
 <style lang="scss">
 @import '~@rei/cdr-tokens/dist/scss/cdr-tokens.scss';
+@import '~@rei/cedar/dist/cedar-compiled.css';
+
 .game-wrapper {
   display: grid;
   grid-template-columns: 25% auto 25%;
