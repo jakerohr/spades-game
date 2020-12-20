@@ -1,11 +1,16 @@
 import Vue from 'vue';
+import dotenv from 'dotenv';
 import VueSocketIOExt from 'vue-socket.io-extended';
 import io from 'socket.io-client';
 import App from './App.vue';
 import router from './router';
 import store from './store';
 
-const socket = io('http://192.168.0.8:3000');
+// dotenv.config();
+
+console.log(process.env.NODE_ENV);
+console.log(process.env.VUE_APP_SOCKET_SERVER);
+const socket = io(process.env.VUE_APP_SOCKET_SERVER);
 
 Vue.config.productionTip = false;
 Vue.use(VueSocketIOExt, socket);
