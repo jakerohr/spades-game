@@ -6,8 +6,6 @@ import App from './App.vue';
 import router from './router';
 import store from './store';
 
-// dotenv.config();
-
 console.log(process.env.NODE_ENV);
 console.log(process.env.VUE_APP_SOCKET_SERVER);
 const socket = io(process.env.VUE_APP_SOCKET_SERVER);
