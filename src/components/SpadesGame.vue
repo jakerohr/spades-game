@@ -192,8 +192,8 @@ export default {
   grid-template-rows: 25vh auto 25vh;
 }
 .card-area {
-  padding-top: $cdr-space-two-x;
-  padding-bottom: $cdr-space-two-x;
+  padding-top: $cdr-space-one-x;
+  padding-bottom: $cdr-space-one-x;
 }
 .bid-select {
   grid-column: 2 / span 1;

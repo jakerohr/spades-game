@@ -8,6 +8,7 @@ import store from './store';
 
 console.log(process.env.NODE_ENV);
 console.log(process.env.VUE_APP_SOCKET_SERVER);
+// create local env varable for local server IP
 const socket = io(process.env.VUE_APP_SOCKET_SERVER);
 
 Vue.config.productionTip = false;
