@@ -80,7 +80,7 @@ export default {
       },
       bid: '',
       players: [],
-      playerOrder: [],
+      // playerOrder: [],
       playersTurn: {},
       teams: [
         {
@@ -140,6 +140,12 @@ export default {
     yourTurn() {
       return this.playersTurn.id === this.playerId;
     },
+    playerOrder() {
+      const index = this.players.indexOf(this.playerData);
+      let arrayStart = this.players.slice(index);
+      let arrayEnd = this.players.slice(0, index);
+      return [...arrayStart, ...arrayEnd];
+    },
   },
   methods: {
     resetPlayers() {
@@ -154,12 +160,12 @@ export default {
     displayConfig(index) {
       return (index + 1) % 2 === 0;
     },
-    setPlayerOrder() {
-      const index = this.players.indexOf(this.playerData);
-      let arrayStart = this.players.slice(index);
-      let arrayEnd = this.players.slice(0, index);
-      this.playerOrder = [...arrayStart, ...arrayEnd];
-    },
+    // setPlayerOrder() {
+    //   const index = this.players.indexOf(this.playerData);
+    //   let arrayStart = this.players.slice(index);
+    //   let arrayEnd = this.players.slice(0, index);
+    //   this.playerOrder = [...arrayStart, ...arrayEnd];
+    // },
     getHand(id) {
       return this.players.find((player) => player.id === id).hand;
     },
@@ -174,7 +180,7 @@ export default {
     startGame() {
       if (this.startGame) {
         this.$socket.client.emit('setPlayOrder');
-        this.setPlayerOrder();
+        // this.setPlayerOrder();
       }
       return;
     },
@@ -211,21 +217,37 @@ export default {
 .game-board {
   grid-column: 2 / span 1;
   grid-row: 2 / span 1;
+  @include cdr-xs-mq-only {
+    padding: $cdr-space-one-x;
+    grid-column: 1 / span 3;
+  }
 }
 .player-1 {
   grid-column: 2 / span 1;
   grid-row: 3 / span 1;
+  @include cdr-xs-mq-only {
+    grid-column: 1 / span 3;
+  }
 }
 .player-2 {
   grid-column: 1 / span 1;
   grid-row: 2 / span 1;
+  @include cdr-xs-mq-only {
+    display: none;
+  }
 }
 .player-3 {
   grid-column: 2 / span 1;
   grid-row: 1 / span 1;
+  @include cdr-xs-mq-only {
+    grid-column: 1 / span 3;
+  }
 }
 .player-4 {
   grid-column: 3 / span 1;
   grid-row: 2 / span 1;
+  @include cdr-xs-mq-only {
+    display: none;
+  }
 }
 </style>

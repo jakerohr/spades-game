@@ -1,15 +1,20 @@
 <template>
-  <div class="card-border" :class="{ vertical: displayVertical }">
-    <cdr-text tag="h2" class="heading-500" :class="{ active: thisPlayersTurn }"
+  <div
+    class="card-border"
+    :style="cssVars"
+    :class="{ vertical: displayVertical, 'is-user': isUser }"
+  >
+    <cdr-text tag="h2" class="heading-500 player-name" :class="{ active: thisPlayersTurn }"
       >{{ playerName }} ({{ tricks }}/{{ bid }})</cdr-text
     >
     <div class="card-container">
       <img
         class="card"
+        @click="playCard(card)"
         v-for="(card, index) in sortedCards"
         :key="`${card.value}-${card.suit}`"
         :ref="`${card.value}-${card.suit}`"
-        :style="getOffset(index + 1)"
+        :style="getOffset(index)"
         :src="cardImage(card)"
       />
     </div>
@@ -26,6 +31,7 @@ export default {
   data() {
     return {
       suitRank: ['S', 'H', 'D', 'C'],
+      selectedCard: {},
     };
   },
   props: {
@@ -69,6 +75,14 @@ export default {
       });
       return suitArray.flatMap((arr) => arr);
     },
+    containerWidth() {
+      return 107 + 20 * (this.cards.length - 1);
+    },
+    cssVars() {
+      return {
+        '--container-size': `${this.containerWidth}px`,
+      };
+    },
   },
   methods: {
     cardImage(card) {
@@ -77,8 +91,15 @@ export default {
     },
     getOffset(index) {
       const axis = this.displayVertical ? 'top' : 'left';
+      const value = axis === 'top' ? index * 2 - 2 : index * 2;
       // return `transform: translateX(${index * 30}px)`;
-      return `${axis}: ${index * 30}px`;
+      return `${axis}: ${value}rem`;
+    },
+    playCard(card) {
+      if (!this.isUser) return;
+      this.selectedCard = card;
+      this.$socket.client.emit('playCard', card);
+      // emit event that card was played.
     },
   },
 };
@@ -86,22 +107,28 @@ export default {
 
 <style lang="scss" scoped>
 @import '~@rei/cdr-tokens/dist/scss/cdr-tokens.scss';
-
-// .card-border {
-//   border: black 1px solid;
-// }
+.player-name {
+  margin-bottom: $cdr-space-half-x;
+}
 .card-container {
-  // overflow: visible;
+  // border: black 1px solid;
+  width: var(--container-size);
+  height: 150px;
+  margin: 0 auto;
   position: relative;
+}
+.vertical .card-container {
+  height: var(--container-size);
+  width: 150px;
 }
 .vertical .card {
   transform: rotate(90deg);
 }
-.vertical .card:hover {
-  transform: rotate(90deg);
-  transform: translateX(-0.2rem);
-  transition: 0.2s;
-}
+// .vertical .card:hover {
+//   transform: rotate(90deg);
+//   transform: translateX(-0.2rem);
+//   transition: 0.2s;
+// }
 img.card {
   position: absolute;
   left: 50%;
@@ -109,21 +136,27 @@ img.card {
   z-index: 1;
   // box-shadow: 0 0.2rem 0.2rem 0 rgba(12, 11, 8, 0.2);
   // transition: box-shadow 0.2s cubic-bezier(0.15, 0, 0.15, 0);
-  cursor: pointer;
 }
-img.card:hover {
+.is-user img.card:hover {
   // box-shadow: 0 0.8rem 0.8rem 0 rgba(12, 11, 8, 0.2);
+  cursor: pointer;
   transform: translateY(-0.8rem);
   transition: 0.2s;
 }
+.vertical {
+  @include cdr-xs-mq-only {
+    display: none;
+  }
+}
 .vertical .card {
   transform: rotate(90deg);
+  left: 14%;
 }
-.vertical .card:hover {
-  // transform: rotate(90deg);
-  transform: rotate(90deg) translateY(-0.8rem);
-  transition: 0.2s;
-}
+// .vertical .card:hover {
+//   // transform: rotate(90deg);
+//   transform: rotate(90deg) translateY(-0.8rem);
+//   transition: 0.2s;
+// }
 .heading-600 {
   @include cdr-text-heading-serif-600;
 }
