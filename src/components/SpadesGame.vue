@@ -6,14 +6,33 @@
       <div>
         <cdr-button @click="shuffleDeck">Shuffle Deck</cdr-button>
       </div>
-      <div class="game-board">
+      <div class="game-board-wrapper">
+        <div class="game-board">
+          <cdr-img :src="backgroundImage" radius="rounded" responsive alt="wood table top" />
+        </div>
         <cdr-img
-          :src="backgroundImage"
-          radius="rounded"
-          alt="wood table top"
-          ratio="16-9"
-          cover
-          crop="top"
+          v-if="cardDisplay['1']"
+          responsive
+          class="played-card zone-1"
+          :src="cardImage(1)"
+        />
+        <cdr-img
+          v-if="cardDisplay['2']"
+          responsive
+          class="played-card zone-2"
+          :src="cardImage(2)"
+        />
+        <cdr-img
+          v-if="cardDisplay['3']"
+          responsive
+          class="played-card zone-3"
+          :src="cardImage(3)"
+        />
+        <cdr-img
+          v-if="cardDisplay['4']"
+          responsive
+          class="played-card zone-4"
+          :src="cardImage(4)"
         />
       </div>
       <card-area
@@ -24,9 +43,12 @@
         :displayVertical="displayConfig(index)"
         :cards="getHand(player.id)"
         :is-user="player.id === playerId"
+        :spades-broken="spadesBroken"
+        :suit-played="suitPlayed"
         :player-name="player.name"
         :this-players-turn="checkTurn(player.id)"
         :bid="getBid(player.id)"
+        :tricks="getTricks(player.id)"
       />
       <cdr-select
         v-if="cardsDealt && !startRound"
@@ -71,7 +93,6 @@ export default {
       selectedBackground: 'dark-wood',
       gameStarted: false,
       startRound: false,
-      openingHand: false,
       playerId: null,
       initPlayer: {
         name: null,
@@ -97,7 +118,10 @@ export default {
         },
       ],
       deck: [],
+      cardDisplay: {},
       cardsDealt: false,
+      spadesBroken: false,
+      suitPlayed: '',
     };
   },
   sockets: {
@@ -117,9 +141,21 @@ export default {
     updateTeams(teams) {
       this.teams = teams;
     },
-    startRound(value, openingHand) {
+    startRound(value) {
       this.startRound = value;
-      this.openingHand = openingHand;
+    },
+    layCard(card, playerId) {
+      // find table zone for player
+      const zone = this.playerOrder.findIndex((player) => player.id === playerId); //0
+      const key = (zone + 1).toString();
+      this.cardDisplay[key] = card;
+      // animate a bonus
+    },
+    clearBoard() {
+      this.cardsDisplay = {};
+    },
+    setSuit(suit) {
+      this.suitPlayed = suit;
     },
     nextTurn(index) {
       this.playersTurn = this.players[index];
@@ -172,8 +208,17 @@ export default {
     getBid(id) {
       return this.players.find((player) => player.id === id).bid;
     },
+    getTricks(id) {
+      return this.players.find((player) => player.id === id).tricksTaken;
+    },
     checkTurn(id) {
-      return this.playersTurn.id === id;
+      return this.playersTurn.id === id && this.startRound;
+    },
+    cardImage(zone) {
+      const card = this.cardDisplay[zone];
+      if (!card) return;
+      const fileName = `${card.value}-${card.suit}`;
+      return require(`../assets/cards/${fileName}.png`);
     },
   },
   watch: {
@@ -191,6 +236,15 @@ export default {
 <style lang="scss">
 @import '~@rei/cdr-tokens/dist/scss/cdr-tokens.scss';
 @import '~@rei/cedar/dist/cedar-compiled.css';
+.heading-700 {
+  @include cdr-text-heading-serif-700;
+}
+.heading-600 {
+  @include cdr-text-heading-serif-600;
+}
+.heading-500 {
+  @include cdr-text-heading-serif-500;
+}
 
 .game-wrapper {
   display: grid;
@@ -214,13 +268,43 @@ export default {
   grid-column: 3 / span 1;
   grid-row: 1 / span 1;
 }
-.game-board {
+.game-board-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 38% 1fr 38%;
   grid-column: 2 / span 1;
   grid-row: 2 / span 1;
   @include cdr-xs-mq-only {
-    padding: $cdr-space-one-x;
     grid-column: 1 / span 3;
   }
+}
+.game-board {
+  padding: $cdr-space-half-x;
+  grid-column: 1 / span 3;
+  grid-row: 1 / span 3;
+}
+img.played-card {
+  max-width: 40%;
+  margin: 0 auto;
+}
+.zone-1 {
+  grid-column: 2 / span 1;
+  grid-row: 3 / span 1;
+}
+.zone-2 {
+  grid-column: 1 / span 1;
+  grid-row: 2 / span 1;
+  transform: rotate(90deg);
+}
+.zone-3 {
+  grid-column: 2 / span 1;
+  grid-row: 1 / span 1;
+  align-self: end;
+}
+.zone-4 {
+  grid-column: 3 / span 1;
+  grid-row: 2 / span 1;
+  transform: rotate(270deg);
 }
 .player-1 {
   grid-column: 2 / span 1;

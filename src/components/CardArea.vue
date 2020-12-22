@@ -2,14 +2,15 @@
   <div
     class="card-border"
     :style="cssVars"
-    :class="{ vertical: displayVertical, 'is-user': isUser }"
+    :class="{ vertical: displayVertical, 'is-user': isUser, active: thisPlayersTurn }"
   >
-    <cdr-text tag="h2" class="heading-500 player-name" :class="{ active: thisPlayersTurn }"
+    <cdr-text tag="h2" class="heading-500 player-name"
       >{{ playerName }} ({{ tricks }}/{{ bid }})</cdr-text
     >
     <div class="card-container">
       <img
         class="card"
+        :class="{ playable: playableCard(card) }"
         @click="playCard(card)"
         v-for="(card, index) in sortedCards"
         :key="`${card.value}-${card.suit}`"
@@ -32,6 +33,7 @@ export default {
     return {
       suitRank: ['S', 'H', 'D', 'C'],
       selectedCard: {},
+      openingHand: false,
     };
   },
   props: {
@@ -63,6 +65,19 @@ export default {
       type: Boolean,
       default: false,
     },
+    spadesBroken: {
+      type: Boolean,
+      default: false,
+    },
+    suitPlayed: {
+      type: String,
+      default: '',
+    },
+  },
+  sockets: {
+    openingHand(value) {
+      this.openingHand = value;
+    },
   },
   computed: {
     sortedCards() {
@@ -74,6 +89,15 @@ export default {
           });
       });
       return suitArray.flatMap((arr) => arr);
+    },
+    lowestClub() {
+      const clubs = this.sortedCards.filter((card) => card.suit === 'C');
+      if (clubs.length === 0) return;
+      const cardRank = clubs.reduce(
+        (min, card) => (card.rank < min ? card.rank : min),
+        clubs[0].rank
+      );
+      return clubs.find((card) => card.rank === cardRank);
     },
     containerWidth() {
       return 107 + 20 * (this.cards.length - 1);
@@ -87,7 +111,7 @@ export default {
   methods: {
     cardImage(card) {
       const fileName = !this.isUser ? 'card-back' : `${card.value}-${card.suit}`;
-      return require(`../assets/cards/${fileName}.png`); // the module request
+      return require(`../assets/cards/${fileName}.png`);
     },
     getOffset(index) {
       const axis = this.displayVertical ? 'top' : 'left';
@@ -96,10 +120,31 @@ export default {
       return `${axis}: ${value}rem`;
     },
     playCard(card) {
-      if (!this.isUser) return;
-      this.selectedCard = card;
-      this.$socket.client.emit('playCard', card);
-      // emit event that card was played.
+      if (this.isUser && this.thisPlayersTurn) {
+        this.selectedCard = card;
+        this.$socket.client.emit('playCard', card);
+      }
+    },
+    firstTrickCard(card) {
+      if (this.lowestClub) {
+        return this.lowestClub.id === card.id;
+      }
+      return true;
+    },
+    checkSuit(card) {
+      if (this.suitPlayed) {
+        return this.suitPlayed === card.suit;
+      } else if (!this.spadesBroken) {
+        return card.suit !== 'S';
+      } else {
+        return true;
+      }
+    },
+    playableCard(card) {
+      if (this.openingHand) {
+        return this.firstTrickCard(card);
+      }
+      return this.checkSuit(card);
     },
   },
 };
@@ -107,6 +152,7 @@ export default {
 
 <style lang="scss" scoped>
 @import '~@rei/cdr-tokens/dist/scss/cdr-tokens.scss';
+
 .player-name {
   margin-bottom: $cdr-space-half-x;
 }
@@ -119,7 +165,19 @@ export default {
 }
 .vertical .card-container {
   height: var(--container-size);
+  position: absolute;
+  top: calc(50% - var(--container-size) / 2);
+  left: calc(50% - 75px);
   width: 150px;
+}
+.parent {
+  position: relative;
+}
+.child {
+  position: absolute;
+  top: 50%;
+  height: 100px;
+  margin-top: -50px; /* account for padding and border if not using box-sizing: border-box; */
 }
 .vertical .card {
   transform: rotate(90deg);
@@ -137,16 +195,24 @@ img.card {
   // box-shadow: 0 0.2rem 0.2rem 0 rgba(12, 11, 8, 0.2);
   // transition: box-shadow 0.2s cubic-bezier(0.15, 0, 0.15, 0);
 }
-.is-user img.card:hover {
+.is-user.active img.card.playable:hover {
   // box-shadow: 0 0.8rem 0.8rem 0 rgba(12, 11, 8, 0.2);
   cursor: pointer;
   transform: translateY(-0.8rem);
   transition: 0.2s;
 }
+// .is-user img.card.playable {
+//   border: $cdr-color-text-success solid 1px;
+//   border-radius: 4px;
+//   box-shadow: inset 0 0 10px $cdr-color-text-success
+// }
 .vertical {
   @include cdr-xs-mq-only {
     display: none;
   }
+}
+.card-border {
+  position: relative;
 }
 .vertical .card {
   transform: rotate(90deg);
@@ -163,7 +229,7 @@ img.card {
 .heading-500 {
   @include cdr-text-heading-serif-500;
 }
-.active {
+.active .player-name {
   color: $cdr-color-text-success;
 }
 </style>
