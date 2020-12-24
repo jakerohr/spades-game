@@ -123,11 +123,10 @@ export default {
     getOffset(index) {
       const axis = this.displayVertical ? 'top' : 'left';
       const value = axis === 'top' ? index * 2 - 2 : index * 2;
-      // return `transform: translateX(${index * 30}px)`;
       return `${axis}: ${value}rem`;
     },
     playCard(card) {
-      if (this.isUser && this.thisPlayersTurn) {
+      if (this.isUser && this.thisPlayersTurn && this.playableCard(card)) {
         this.$socket.client.emit('playCard', card);
       }
     },
@@ -176,42 +175,20 @@ export default {
   left: calc(50% - 75px);
   width: 150px;
 }
-.parent {
-  position: relative;
-}
-.child {
-  position: absolute;
-  top: 50%;
-  height: 100px;
-  margin-top: -50px; /* account for padding and border if not using box-sizing: border-box; */
-}
 .vertical .card {
   transform: rotate(90deg);
 }
-// .vertical .card:hover {
-//   transform: rotate(90deg);
-//   transform: translateX(-0.2rem);
-//   transition: 0.2s;
-// }
 img.card {
   position: absolute;
   left: 50%;
   max-height: 150px;
   z-index: 1;
-  // box-shadow: 0 0.2rem 0.2rem 0 rgba(12, 11, 8, 0.2);
-  // transition: box-shadow 0.2s cubic-bezier(0.15, 0, 0.15, 0);
 }
 .is-user.active img.card.playable:hover {
-  // box-shadow: 0 0.8rem 0.8rem 0 rgba(12, 11, 8, 0.2);
   cursor: pointer;
   transform: translateY(-0.8rem);
   transition: 0.2s;
 }
-// .is-user img.card.playable {
-//   border: $cdr-color-text-success solid 1px;
-//   border-radius: 4px;
-//   box-shadow: inset 0 0 10px $cdr-color-text-success
-// }
 .vertical {
   @include cdr-xs-mq-only {
     display: none;
@@ -224,11 +201,6 @@ img.card {
   transform: rotate(90deg);
   left: 14%;
 }
-// .vertical .card:hover {
-//   // transform: rotate(90deg);
-//   transform: rotate(90deg) translateY(-0.8rem);
-//   transition: 0.2s;
-// }
 .heading-600 {
   @include cdr-text-heading-serif-600;
 }

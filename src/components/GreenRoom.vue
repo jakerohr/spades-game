@@ -1,22 +1,6 @@
 <template>
   <div>
     <div class="cdr-container stack">
-      <!-- <cdr-text tag="h2" class="heading-600">Players</cdr-text>
-      <cdr-form-group :label="formLabel">
-        <cdr-list v-if="players" role="radiogroup">
-          <li v-for="player in players" :key="player.id">
-            <cdr-radio
-              name="teammate"
-              size="large"
-              @change="inputName"
-              :custom-value="player.id"
-              v-model="selectedTeammate"
-              :disabled="player.id === playerId"
-              >{{ player.name }}</cdr-radio
-            >
-          </li>
-        </cdr-list>
-      </cdr-form-group> -->
       <cdr-text v-show="playerName" tag="h1" class="heading-700 cdr-align-text-center"
         >Welcome {{ playerName }}!</cdr-text
       >
@@ -70,23 +54,12 @@
 </template>
 
 <script>
-import {
-  CdrButton,
-  CdrSelect,
-  // CdrRadio,
-  // CdrFormGroup,
-  CdrModal,
-  CdrText,
-  CdrInput,
-  CdrList,
-} from '@rei/cedar';
+import { CdrButton, CdrSelect, CdrModal, CdrText, CdrInput, CdrList } from '@rei/cedar';
 export default {
   name: 'GreenRoom',
   components: {
     CdrButton,
     CdrSelect,
-    // CdrRadio,
-    // CdrFormGroup,
     CdrModal,
     CdrList,
     CdrText,
@@ -125,12 +98,6 @@ export default {
     formLabel() {
       return this.players.length < 4 ? 'Wating for players...' : 'Select your teammate.';
     },
-    getTeammateName() {
-      const teammate = this.players.find((player) => {
-        return player.id === this.selectedTeammate;
-      });
-      return teammate ? teammate.name : null;
-    },
     readyMessage() {
       return this.playerIsReady ? "I'm not ready!" : "I'm ready!";
     },
@@ -142,10 +109,6 @@ export default {
     submitName() {
       this.modalOpened = false;
       this.$socket.client.emit('addPlayer', this.playerName);
-    },
-    inputName(value) {
-      this.selectedTeammate = value;
-      this.$socket.client.emit('submitTeammate', value, this.playerId);
     },
     onChange(team) {
       this.$socket.client.emit('selectTeam', team);

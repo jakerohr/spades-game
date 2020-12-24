@@ -71,15 +71,27 @@
     </div>
     <cdr-modal
       label="Game Over!"
-      :opened="modalOpened"
+      :opened="winModalOpened"
       @closed="playAgain"
-      class="cdr-align-text-center game-over-modal"
+      class="cdr-align-text-center game-over-modal game-modal"
       aria-described-by="description"
     >
       <template slot="title">
         <cdr-text tag="h3" class="heading-600">Congratulations {{ winningTeam }}!</cdr-text>
         <cdr-text tag="h4" class="heading-500">You are victorious!</cdr-text>
-        <cdr-button class="btn-play-again" @click="playAgain">Play Again?</cdr-button>
+        <cdr-button class="btn btn-play-again" @click="playAgain">Play Again?</cdr-button>
+      </template>
+    </cdr-modal>
+    <cdr-modal
+      label="Deal Cards"
+      :opened="dealPrompt"
+      @closed="dealPrompt = false"
+      class="cdr-align-text-center deal-cards-modal game-modal"
+      aria-described-by="description"
+    >
+      <template slot="title">
+        <cdr-text tag="h3" class="heading-600">You are the dealer</cdr-text>
+        <cdr-button class="btn btn-deal-cards" @click="shuffleDeck">Deal Cards</cdr-button>
       </template>
     </cdr-modal>
   </div>
@@ -161,7 +173,7 @@ export default {
       this.startRound = value;
     },
     layCard(card, playerId) {
-      const zone = this.playerOrder.findIndex((player) => player.id === playerId); //0
+      const zone = this.playerOrder.findIndex((player) => player.id === playerId);
       const key = (zone + 1).toString();
       this.cardDisplay[key] = card;
       // animate a bonus
@@ -200,7 +212,7 @@ export default {
       let arrayEnd = this.players.slice(0, index);
       return [...arrayStart, ...arrayEnd];
     },
-    modalOpened() {
+    winModalOpened() {
       return !!this.winningTeam;
     },
   },
@@ -209,6 +221,7 @@ export default {
       this.$socket.client.emit('resetPlayers');
     },
     shuffleDeck() {
+      this.dealPrompt = false;
       this.$socket.client.emit('shuffleDeck');
     },
     onBidChange(bid) {
@@ -243,6 +256,7 @@ export default {
   watch: {
     startGame() {
       if (this.startGame) {
+        // this.shuffleDeck();
         this.$socket.client.emit('setPlayOrder');
       }
       return;
@@ -263,7 +277,7 @@ export default {
 #spades-game .heading-500 {
   @include cdr-text-heading-serif-500;
 }
-.btn-play-again {
+.btn {
   margin-top: $cdr-space-half-x;
 }
 .game-wrapper {
