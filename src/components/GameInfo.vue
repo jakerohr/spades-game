@@ -36,7 +36,7 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import '~@rei/cdr-tokens/dist/scss/cdr-tokens.scss';
 
 .winner {

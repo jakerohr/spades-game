@@ -4,8 +4,9 @@
     :style="cssVars"
     :class="{ vertical: displayVertical, 'is-user': isUser, active: thisPlayersTurn }"
   >
+    <cdr-text modifier="eyebrow-100">{{ playerTeam }}</cdr-text>
     <cdr-text tag="h2" class="heading-500 player-name"
-      >{{ playerName }} ({{ tricks }}/{{ bid }})</cdr-text
+      >{{ playerName }} <span v-if="bid">({{ tricks }}/{{ bid }})</span></cdr-text
     >
     <div class="card-container">
       <img
@@ -32,12 +33,17 @@ export default {
   data() {
     return {
       suitRank: ['S', 'H', 'D', 'C'],
-      selectedCard: {},
       openingHand: false,
+      spadesBroken: false,
+      suitPlayed: '',
     };
   },
   props: {
     playerName: {
+      type: String,
+      default: '',
+    },
+    playerTeam: {
       type: String,
       default: '',
     },
@@ -65,18 +71,16 @@ export default {
       type: Boolean,
       default: false,
     },
-    spadesBroken: {
-      type: Boolean,
-      default: false,
-    },
-    suitPlayed: {
-      type: String,
-      default: '',
-    },
   },
   sockets: {
     openingHand(value) {
       this.openingHand = value;
+    },
+    spadesBroken(value) {
+      this.spadesBroken = value;
+    },
+    setSuit(suit) {
+      this.suitPlayed = suit;
     },
   },
   computed: {
@@ -98,6 +102,9 @@ export default {
         clubs[0].rank
       );
       return clubs.find((card) => card.rank === cardRank);
+    },
+    cardsMatchingSuit() {
+      return this.sortedCards.some((card) => card.suit === this.suitPlayed);
     },
     containerWidth() {
       return 107 + 20 * (this.cards.length - 1);
@@ -121,7 +128,6 @@ export default {
     },
     playCard(card) {
       if (this.isUser && this.thisPlayersTurn) {
-        this.selectedCard = card;
         this.$socket.client.emit('playCard', card);
       }
     },
@@ -132,9 +138,9 @@ export default {
       return true;
     },
     checkSuit(card) {
-      if (this.suitPlayed) {
+      if (this.suitPlayed && this.cardsMatchingSuit) {
         return this.suitPlayed === card.suit;
-      } else if (!this.spadesBroken) {
+      } else if (!this.spadesBroken && !this.suitPlayed) {
         return card.suit !== 'S';
       } else {
         return true;

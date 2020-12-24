@@ -1,8 +1,8 @@
 <template>
-  <div>
+  <div id="spades-game">
     <!-- TODO: add green room back with 'else' statement -->
-    <!-- <green-room v-if="!startGame" :teams="teams" :players="players" :player-id="playerId" /> -->
-    <div v-if="startGame" class="game-wrapper cdr-align-text-center">
+    <green-room v-if="!startGame" :teams="teams" :players="players" :player-id="playerId" />
+    <div v-else class="game-wrapper cdr-align-text-center">
       <div>
         <cdr-button @click="shuffleDeck">Shuffle Deck</cdr-button>
       </div>
@@ -43,9 +43,8 @@
         :displayVertical="displayConfig(index)"
         :cards="getHand(player.id)"
         :is-user="player.id === playerId"
-        :spades-broken="spadesBroken"
-        :suit-played="suitPlayed"
         :player-name="player.name"
+        :player-team="player.team"
         :this-players-turn="checkTurn(player.id)"
         :bid="getBid(player.id)"
         :tricks="getTricks(player.id)"
@@ -53,7 +52,7 @@
       <cdr-select
         v-if="cardsDealt && !startRound"
         v-model="bid"
-        @change="onBidChange($event)"
+        @input="onBidChange($event)"
         class="bid-select"
         label="What's your bid?"
         prompt="No table talk!"
@@ -67,16 +66,31 @@
         class="game-info"
         :current-turn="playersTurn.name"
         :your-turn="yourTurn"
-      ></game-info>
+      />
+      <score-board class="score-board" :players="players"></score-board>
     </div>
+    <cdr-modal
+      label="Game Over!"
+      :opened="modalOpened"
+      @closed="playAgain"
+      class="cdr-align-text-center game-over-modal"
+      aria-described-by="description"
+    >
+      <template slot="title">
+        <cdr-text tag="h3" class="heading-600">Congratulations {{ winningTeam }}!</cdr-text>
+        <cdr-text tag="h4" class="heading-500">You are victorious!</cdr-text>
+        <cdr-button class="btn-play-again" @click="playAgain">Play Again?</cdr-button>
+      </template>
+    </cdr-modal>
   </div>
 </template>
 
 <script>
-import { CdrButton, CdrImg, CdrSelect } from '@rei/cedar';
+import { CdrButton, CdrImg, CdrSelect, CdrModal, CdrText } from '@rei/cedar';
 import CardArea from './CardArea.vue';
 import GreenRoom from './GreenRoom.vue';
 import GameInfo from './GameInfo.vue';
+import ScoreBoard from './ScoreBoard.vue';
 
 export default {
   name: 'SpadesGame',
@@ -84,9 +98,12 @@ export default {
     CdrButton,
     CdrSelect,
     CdrImg,
+    CdrModal,
+    CdrText,
     CardArea,
     GameInfo,
-    // GreenRoom,
+    ScoreBoard,
+    GreenRoom,
   },
   data() {
     return {
@@ -101,7 +118,6 @@ export default {
       },
       bid: '',
       players: [],
-      // playerOrder: [],
       playersTurn: {},
       teams: [
         {
@@ -120,8 +136,8 @@ export default {
       deck: [],
       cardDisplay: {},
       cardsDealt: false,
-      spadesBroken: false,
-      suitPlayed: '',
+      winningTeam: '',
+      dealPrompt: false,
     };
   },
   sockets: {
@@ -145,20 +161,22 @@ export default {
       this.startRound = value;
     },
     layCard(card, playerId) {
-      // find table zone for player
       const zone = this.playerOrder.findIndex((player) => player.id === playerId); //0
       const key = (zone + 1).toString();
       this.cardDisplay[key] = card;
       // animate a bonus
     },
     clearBoard() {
-      this.cardsDisplay = {};
-    },
-    setSuit(suit) {
-      this.suitPlayed = suit;
+      this.cardDisplay = {};
     },
     nextTurn(index) {
       this.playersTurn = this.players[index];
+    },
+    gameOver(team) {
+      this.winningTeam = team === 'teamOne' ? 'Team One' : 'Team Two';
+    },
+    dealPrompt() {
+      this.dealPrompt = true;
     },
   },
   computed: {
@@ -182,6 +200,9 @@ export default {
       let arrayEnd = this.players.slice(0, index);
       return [...arrayStart, ...arrayEnd];
     },
+    modalOpened() {
+      return !!this.winningTeam;
+    },
   },
   methods: {
     resetPlayers() {
@@ -191,17 +212,11 @@ export default {
       this.$socket.client.emit('shuffleDeck');
     },
     onBidChange(bid) {
-      this.$socket.client.emit('bidSelect', parseInt(bid));
+      this.$socket.client.emit('bidSelect', parseInt(bid.target.value));
     },
     displayConfig(index) {
       return (index + 1) % 2 === 0;
     },
-    // setPlayerOrder() {
-    //   const index = this.players.indexOf(this.playerData);
-    //   let arrayStart = this.players.slice(index);
-    //   let arrayEnd = this.players.slice(0, index);
-    //   this.playerOrder = [...arrayStart, ...arrayEnd];
-    // },
     getHand(id) {
       return this.players.find((player) => player.id === id).hand;
     },
@@ -220,12 +235,15 @@ export default {
       const fileName = `${card.value}-${card.suit}`;
       return require(`../assets/cards/${fileName}.png`);
     },
+    playAgain() {
+      this.winningTeam = '';
+      this.$socket.client.emit('playAgain');
+    },
   },
   watch: {
     startGame() {
       if (this.startGame) {
         this.$socket.client.emit('setPlayOrder');
-        // this.setPlayerOrder();
       }
       return;
     },
@@ -236,23 +254,25 @@ export default {
 <style lang="scss">
 @import '~@rei/cdr-tokens/dist/scss/cdr-tokens.scss';
 @import '~@rei/cedar/dist/cedar-compiled.css';
-.heading-700 {
+#spades-game .heading-700 {
   @include cdr-text-heading-serif-700;
 }
-.heading-600 {
+#spades-game .heading-600 {
   @include cdr-text-heading-serif-600;
 }
-.heading-500 {
+#spades-game .heading-500 {
   @include cdr-text-heading-serif-500;
 }
-
+.btn-play-again {
+  margin-top: $cdr-space-half-x;
+}
 .game-wrapper {
   display: grid;
   grid-template-columns: 25% auto 25%;
   grid-template-rows: 25vh auto 25vh;
 }
 .card-area {
-  padding-top: $cdr-space-one-x;
+  padding-top: $cdr-space-half-x;
   padding-bottom: $cdr-space-one-x;
 }
 .bid-select {
@@ -267,6 +287,12 @@ export default {
 .game-info {
   grid-column: 3 / span 1;
   grid-row: 1 / span 1;
+}
+.score-board {
+  grid-column: 3 / span 1;
+  grid-row: 3 / span 1;
+  padding-left: $cdr-space-one-x;
+  padding-right: $cdr-space-one-x;
 }
 .game-board-wrapper {
   display: grid;

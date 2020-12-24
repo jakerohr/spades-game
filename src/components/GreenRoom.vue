@@ -63,7 +63,7 @@
       </template>
       <form v-on:submit.prevent="submitName">
         <cdr-input v-model="playerName" label="Name" placeholder="Who are you?" />
-        <cdr-button type="submit">Enter</cdr-button>
+        <cdr-button class="btn-submit-name" type="submit">Enter</cdr-button>
       </form>
     </cdr-modal>
   </div>
@@ -108,7 +108,7 @@ export default {
   },
   data() {
     return {
-      modalOpened: false,
+      modalOpened: true,
       playerName: null,
       selectedTeam: '',
       readyGame: false,
@@ -177,7 +177,9 @@ export default {
 .stack > * + * {
   margin-top: $cdr-space-two-x;
 }
-
+.btn-submit-name {
+  margin-top: $cdr-space-half-x;
+}
 .team-select {
   max-width: 50rem;
   display: block;
