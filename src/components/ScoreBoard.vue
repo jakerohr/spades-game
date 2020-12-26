@@ -29,7 +29,7 @@
         </tr>
       </tbody>
     </cdr-table>
-    <button @click="sendScores">Send Scores</button>
+    <!-- <button @click="sendScores">Send Scores</button> -->
   </div>
 </template>
 

@@ -3,9 +3,9 @@
     <!-- TODO: add green room back with 'else' statement -->
     <green-room v-if="!startGame" :teams="teams" :players="players" :player-id="playerId" />
     <div v-else class="game-wrapper cdr-align-text-center">
-      <div>
+      <!-- <div>
         <cdr-button @click="shuffleDeck">Shuffle Deck</cdr-button>
-      </div>
+      </div> -->
       <div class="game-board-wrapper">
         <div class="game-board">
           <cdr-img :src="backgroundImage" radius="rounded" responsive alt="wood table top" />

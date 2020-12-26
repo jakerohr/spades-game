@@ -1,12 +1,21 @@
 <template>
   <div>
-    <h2 v-if="currentTurn" class="heading-500">{{ message }}</h2>
+    <div v-if="currentTurn">
+      <cdr-alert v-if="yourTurn" class="turn-alert" type="success" aria-live="polite">
+        It's your turn!
+      </cdr-alert>
+      <h2 v-else class="heading-500">It's {{ currentTurn }}'s turn!</h2>
+    </div>
     <h2 v-if="winner" class="winner heading-500">{{ winner }} won the hand!!!</h2>
   </div>
 </template>
-
 <script>
+import { CdrAlert } from '@rei/cedar';
+
 export default {
+  components: {
+    CdrAlert,
+  },
   name: 'GameInfo',
   props: {
     currentTurn: {
@@ -38,7 +47,9 @@ export default {
 
 <style lang="scss">
 @import '~@rei/cdr-tokens/dist/scss/cdr-tokens.scss';
-
+.turn-alert {
+  margin: $cdr-space-one-x;
+}
 .winner {
   color: $cdr-color-text-sale;
 }
