@@ -9,16 +9,18 @@
       >{{ playerName }} <span v-if="bid">({{ tricks }}/{{ bid }})</span></cdr-text
     >
     <div class="card-container">
-      <img
-        class="card"
-        :class="{ playable: playableCard(card) }"
-        @click="playCard(card)"
-        v-for="(card, index) in sortedCards"
-        :key="`${card.value}-${card.suit}`"
-        :ref="`${card.value}-${card.suit}`"
-        :style="getOffset(index)"
-        :src="cardImage(card)"
-      />
+      <transition-group name="fade">
+        <img
+          class="card"
+          :class="{ playable: playableCard(card) }"
+          @click="playCard(card)"
+          v-for="(card, index) in sortedCards"
+          :key="`${card.value}-${card.suit}`"
+          :ref="`${card.value}-${card.suit}`"
+          :style="getOffset(index)"
+          :src="cardImage(card)"
+        />
+      </transition-group>
     </div>
   </div>
 </template>

@@ -10,30 +10,38 @@
         <div class="game-board">
           <cdr-img :src="backgroundImage" radius="rounded" responsive alt="wood table top" />
         </div>
-        <cdr-img
-          v-if="cardDisplay['1']"
-          responsive
-          class="played-card zone-1"
-          :src="cardImage(1)"
-        />
-        <cdr-img
-          v-if="cardDisplay['2']"
-          responsive
-          class="played-card zone-2"
-          :src="cardImage(2)"
-        />
-        <cdr-img
-          v-if="cardDisplay['3']"
-          responsive
-          class="played-card zone-3"
-          :src="cardImage(3)"
-        />
-        <cdr-img
-          v-if="cardDisplay['4']"
-          responsive
-          class="played-card zone-4"
-          :src="cardImage(4)"
-        />
+        <transition name="card-one">
+          <cdr-img
+            v-if="cardDisplay['1']"
+            responsive
+            class="played-card zone-1"
+            :src="cardImage(1)"
+          />
+        </transition>
+        <transition name="card-two">
+          <cdr-img
+            v-if="cardDisplay['2']"
+            responsive
+            class="played-card zone-2"
+            :src="cardImage(2)"
+          />
+        </transition>
+        <transition name="card-three">
+          <cdr-img
+            v-if="cardDisplay['3']"
+            responsive
+            class="played-card zone-3"
+            :src="cardImage(3)"
+          />
+        </transition>
+        <transition name="card-four">
+          <cdr-img
+            v-if="cardDisplay['4']"
+            responsive
+            class="played-card zone-4"
+            :src="cardImage(4)"
+          />
+        </transition>
       </div>
       <card-area
         v-for="(player, index) in playerOrder"
@@ -373,5 +381,46 @@ img.played-card {
   @include cdr-xs-mq-only {
     display: none;
   }
+}
+.card-one-enter {
+  transform: translateY(210px);
+  // opacity: 0;
+}
+.card-two-enter {
+  transform: translateX(-210px);
+  // opacity: 0;
+}
+.card-three-enter {
+  transform: translateY(-210px);
+  // opacity: 0;
+}
+.card-four-enter {
+  transform: translateX(210px);
+  // opacity: 0;
+}
+
+.card-one-enter-active,
+.fade-one-leave-active,
+.card-two-enter-active,
+.fade-two-leave-active,
+.card-three-enter-active,
+.fade-three-leave-active,
+.card-four-enter-active,
+.fade-four-leave-active {
+  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.fade-one-leave-to,
+.fade-two-leave-to,
+.fade-three-leave-to,
+.fade-four-leave-to {
+  opacity: 0;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: 0.5s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+  opacity: 0;
 }
 </style>
